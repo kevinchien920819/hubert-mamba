@@ -1,0 +1,97 @@
+general:
+  device: cuda
+  device_id: '0'
+  work_dir: default
+  seed: 1337
+  deterministic: false
+  freeze: []
+  unfreeze: []
+  ckpt:
+    path: ''
+    modules:
+      from: [all]
+      to: [all]
+  testing_ckpt: default
+  train: true
+  eval: false
+
+model:
+  name: HubertMamba
+  tag: mamba_base_iter1
+  description: 'Mamba Base HuBERT iter1 masked unit pretraining'
+  variant: mamba
+  size: base
+  conv_feature_layers: [[512, 10, 5], [512, 3, 2], [512, 3, 2], [512, 3, 2], [512, 3, 2], [512, 2, 2], [512, 2, 2]]
+  conv_bias: false
+  extractor_mode: default
+  encoder_layers: 12
+  encoder_embed_dim: 768
+  encoder_ffn_embed_dim: -1
+  final_dim: 256
+  logit_temp: 0.1
+  mask_prob: 0.80
+  mask_length: 10
+  mask_min_masks: 2
+  dropout_input: 0.1
+  dropout_features: 0.1
+  dropout: 0.1
+  activation_dropout: 0.0
+  encoder_layerdrop: 0.05
+  feature_grad_mult: 0.1
+  untie_final_proj: true
+  mamba_ssm_state_expand: 16
+  mamba_conv_kernel_size: 4
+  mamba_block_expand: 2
+
+data:
+  manifest_dir: /path/to/LibriSpeech/manifest
+  label_dir: /path/to/LibriSpeech/feature/mfcc
+  labels: ['km']
+  train_split: train
+  valid_split: valid
+  sample_rate: 16000
+  label_rate: 100
+  num_classes: 100
+  max_sample_size: 250000
+  min_sample_size: 32000
+  pad_audio: false
+  random_crop: true
+  normalize: false
+
+solver:
+  optimizer: Adam
+  adam_betas: [0.9, 0.98]
+  adam_eps: 1.0e-06
+  weight_decay: 0.01
+  scheduler: polynomial_decay
+  lr: [0.0005]
+  max_updates: 250000
+  warmup_updates: 20000
+  update_freq: 2
+  max_grad_norm: 10.0
+  amp_dtype: fp16
+  log_interval_updates: 200
+  validate_interval_updates: 10000
+  save_interval_updates: 25000
+  criterion:
+    pred_masked_weight: 1.0
+    pred_nomask_weight: 0.0
+    feature_penalty_weight: 10.0
+
+dataloader:
+  name: HubertPretrainDataset
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 4
+  non_blocking_transfer: true
+  token_batch_size: 5600000
+  batch_size:
+    train: 8
+    dev: 8
+    eval: 8
+
+wandb:
+  enable: false
+  entity: icebird
+  project: hubert-mamba
